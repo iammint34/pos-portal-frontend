@@ -1,0 +1,10 @@
+export { DashboardPage } from './DashboardPage';
+export { StoresPage } from './StoresPage';
+export { BranchesPage } from './BranchesPage';
+export { CategoriesPage } from './CategoriesPage';
+export { ItemsPage } from './ItemsPage';
+export { PosDevicesPage } from './PosDevicesPage';
+export { OrdersPage } from './OrdersPage';
+export { UsersPage } from './UsersPage';
+export { RolesPage } from './RolesPage';
+export { AuditPage } from './AuditPage';
