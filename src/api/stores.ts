@@ -7,6 +7,11 @@ export interface CreateStoreDto {
   address?: string;
   phone?: string;
   email?: string;
+  // BIR Compliance Fields
+  registeredName?: string;
+  registeredAddress?: string;
+  vatTin?: string;
+  isVatRegistered?: boolean;
 }
 
 export interface UpdateStoreDto {
@@ -16,6 +21,11 @@ export interface UpdateStoreDto {
   address?: string;
   phone?: string;
   email?: string;
+  // BIR Compliance Fields
+  registeredName?: string;
+  registeredAddress?: string;
+  vatTin?: string;
+  isVatRegistered?: boolean;
 }
 
 export const storesApi = {

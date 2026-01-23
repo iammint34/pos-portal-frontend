@@ -34,6 +34,10 @@ export function StoresPage() {
     address: '',
     phone: '',
     email: '',
+    registeredName: '',
+    registeredAddress: '',
+    vatTin: '',
+    isVatRegistered: true,
   });
 
   const fetchStores = async () => {
@@ -61,7 +65,7 @@ export function StoresPage() {
       }
       setIsModalOpen(false);
       setEditingStore(null);
-      setFormData({ name: '', type: 'OTHER', address: '', phone: '', email: '' });
+      setFormData({ name: '', type: 'OTHER', address: '', phone: '', email: '', registeredName: '', registeredAddress: '', vatTin: '', isVatRegistered: true });
       fetchStores();
       // Refresh the store context to update sidebar navigation
       refreshStoreContext();
@@ -78,6 +82,10 @@ export function StoresPage() {
       address: store.address || '',
       phone: store.phone || '',
       email: store.email || '',
+      registeredName: store.registeredName || '',
+      registeredAddress: store.registeredAddress || '',
+      vatTin: store.vatTin || '',
+      isVatRegistered: store.isVatRegistered ?? true,
     });
     setIsModalOpen(true);
   };
@@ -183,7 +191,7 @@ export function StoresPage() {
         onClose={() => {
           setIsModalOpen(false);
           setEditingStore(null);
-          setFormData({ name: '', type: 'OTHER', address: '', phone: '', email: '' });
+          setFormData({ name: '', type: 'OTHER', address: '', phone: '', email: '', registeredName: '', registeredAddress: '', vatTin: '', isVatRegistered: true });
         }}
         title={editingStore ? 'Edit Store' : 'Add Store'}
         size="md"
@@ -217,6 +225,44 @@ export function StoresPage() {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
+
+          {/* BIR Compliance Section */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">BIR Compliance Settings</h3>
+            <div className="space-y-4">
+              <Input
+                label="BIR Registered Name"
+                value={formData.registeredName}
+                onChange={(e) => setFormData({ ...formData, registeredName: e.target.value })}
+                placeholder="Official business name registered with BIR"
+              />
+              <Input
+                label="BIR Registered Address"
+                value={formData.registeredAddress}
+                onChange={(e) => setFormData({ ...formData, registeredAddress: e.target.value })}
+                placeholder="Address registered with BIR"
+              />
+              <Input
+                label="VAT TIN"
+                value={formData.vatTin}
+                onChange={(e) => setFormData({ ...formData, vatTin: e.target.value })}
+                placeholder="e.g., 123-456-789-000"
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isVatRegistered"
+                  checked={formData.isVatRegistered}
+                  onChange={(e) => setFormData({ ...formData, isVatRegistered: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <label htmlFor="isVatRegistered" className="text-sm text-gray-700">
+                  VAT Registered Business
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel

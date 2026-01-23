@@ -6,6 +6,11 @@ export interface CreateBranchDto {
   name: string;
   address?: string;
   phone?: string;
+  // BIR Compliance Fields (PTU)
+  ptuNo?: string;
+  ptuDateIssued?: string;
+  ptuValidUntil?: string;
+  accreditationNo?: string;
 }
 
 export interface UpdateBranchDto {
@@ -13,6 +18,11 @@ export interface UpdateBranchDto {
   address?: string;
   phone?: string;
   status?: BranchStatus;
+  // BIR Compliance Fields (PTU)
+  ptuNo?: string;
+  ptuDateIssued?: string;
+  ptuValidUntil?: string;
+  accreditationNo?: string;
 }
 
 export const branchesApi = {

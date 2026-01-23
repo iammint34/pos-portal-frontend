@@ -8,6 +8,8 @@ import {
   Package,
   Monitor,
   Receipt,
+  Clock,
+  BarChart3,
   Users,
   Shield,
   FileText,
@@ -29,6 +31,8 @@ const storeNavigation = [
   { name: 'Items', href: '/items', icon: Package },
   { name: 'POS Devices', href: '/pos', icon: Monitor },
   { name: 'Orders', href: '/orders', icon: Receipt },
+  { name: 'Shifts', href: '/shifts', icon: Clock },
+  { name: 'Reports', href: '/reports', icon: BarChart3 },
 ];
 
 const systemNavigation = [

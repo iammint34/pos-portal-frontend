@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { salesApi, GetOrdersParams } from '../../api/sales';
+import { branchesApi } from '../../api/branches';
 import { useStore } from '../../contexts/StoreContext';
-import { Order, OrderStatus, OrderType, SalesSummary } from '../../types';
+import { Order, OrderStatus, OrderType, SalesSummary, Branch } from '../../types';
 import {
   Button,
   Card,
@@ -32,6 +33,7 @@ import { formatDate, formatCurrency } from '../../lib/utils';
 export function OrdersPage() {
   const { currentStore } = useStore();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -40,11 +42,23 @@ export function OrdersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState<GetOrdersParams>({
     status: undefined,
+    branchId: undefined,
     startDate: undefined,
     endDate: undefined,
   });
 
-  // Set default date range to today
+  // Fetch branches for the current store
+  const fetchBranches = async () => {
+    if (!currentStore?.id) return;
+    try {
+      const response = await branchesApi.getAll({ storeId: currentStore.id, limit: 100 });
+      setBranches(response.data);
+    } catch (error) {
+      console.error('Failed to fetch branches:', error);
+    }
+  };
+
+  // Set default date range to today and fetch branches
   useEffect(() => {
     const today = new Date();
     const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString().split('T')[0];
@@ -54,7 +68,8 @@ export function OrdersPage() {
       startDate: startOfDay,
       endDate: endOfDay,
     }));
-  }, []);
+    fetchBranches();
+  }, [currentStore?.id]);
 
   const fetchOrders = async () => {
     if (!currentStore?.id) {
@@ -88,6 +103,7 @@ export function OrdersPage() {
     try {
       const data = await salesApi.getSalesSummary({
         storeId: currentStore.id,
+        branchId: filters.branchId,
         startDate: `${filters.startDate}T00:00:00.000Z`,
         endDate: `${filters.endDate}T23:59:59.999Z`,
       });
@@ -120,7 +136,6 @@ export function OrdersPage() {
       PENDING: 'warning',
       VOIDED: 'danger',
       REFUNDED: 'danger',
-      PARTIALLY_REFUNDED: 'warning',
     };
     return <Badge variant={variants[status]}>{status.replace('_', ' ')}</Badge>;
   };
@@ -141,7 +156,11 @@ export function OrdersPage() {
     { value: 'PENDING', label: 'Pending' },
     { value: 'VOIDED', label: 'Voided' },
     { value: 'REFUNDED', label: 'Refunded' },
-    { value: 'PARTIALLY_REFUNDED', label: 'Partially Refunded' },
+  ];
+
+  const branchOptions = [
+    { value: '', label: 'All Branches' },
+    ...branches.map(branch => ({ value: branch.id, label: branch.name })),
   ];
 
   if (!currentStore) {
@@ -237,6 +256,14 @@ export function OrdersPage() {
                 type="date"
                 value={filters.endDate || ''}
                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+              />
+            </div>
+            <div className="flex-1 min-w-[150px]">
+              <Select
+                label="Branch"
+                options={branchOptions}
+                value={filters.branchId || ''}
+                onChange={(e) => setFilters({ ...filters, branchId: e.target.value || undefined })}
               />
             </div>
             <div className="flex-1 min-w-[150px]">

@@ -4,6 +4,10 @@ import { PosDevice, PaginatedResponse, PosStatus, SyncLog } from '../types';
 export interface CreatePosDeviceDto {
   branchId: string;
   name?: string;
+  // BIR Compliance Fields
+  min?: string;
+  serialNumber?: string;
+  permitNumber?: string;
 }
 
 export interface RegisterPosDto {
@@ -16,6 +20,10 @@ export interface RegisterPosDto {
 export interface UpdatePosDto {
   name?: string;
   status?: PosStatus;
+  // BIR Compliance Fields
+  min?: string;
+  serialNumber?: string;
+  permitNumber?: string;
 }
 
 export interface PosDeviceWithCode extends PosDevice {
@@ -75,7 +83,7 @@ export const posApi = {
     offline: number;
     inactive: number;
   }> => {
-    const response = await apiClient.get('/pos/stats', { params: { storeId } });
+    const response = await apiClient.get('/pos/devices/stats', { params: { storeId } });
     return response.data;
   },
 

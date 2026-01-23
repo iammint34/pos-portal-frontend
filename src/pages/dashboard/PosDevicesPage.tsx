@@ -37,9 +37,15 @@ export function PosDevicesPage() {
   const [createFormData, setCreateFormData] = useState<CreatePosDeviceDto>({
     branchId: '',
     name: '',
+    min: '',
+    serialNumber: '',
+    permitNumber: '',
   });
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<UpdatePosDto>({
     name: '',
+    min: '',
+    serialNumber: '',
+    permitNumber: '',
   });
 
   const fetchData = async () => {
@@ -69,7 +75,7 @@ export function PosDevicesPage() {
       setCreatedDevice(device);
       setIsCreateModalOpen(false);
       setIsCodeModalOpen(true);
-      setCreateFormData({ branchId: '', name: '' });
+      setCreateFormData({ branchId: '', name: '', min: '', serialNumber: '', permitNumber: '' });
       fetchData();
     } catch (error) {
       console.error('Failed to create device:', error);
@@ -80,10 +86,10 @@ export function PosDevicesPage() {
     e.preventDefault();
     if (!editingDevice) return;
     try {
-      await posApi.update(editingDevice.id, editFormData as UpdatePosDto);
+      await posApi.update(editingDevice.id, editFormData);
       setIsEditModalOpen(false);
       setEditingDevice(null);
-      setEditFormData({ name: '' });
+      setEditFormData({ name: '', min: '', serialNumber: '', permitNumber: '' });
       fetchData();
     } catch (error) {
       console.error('Failed to update device:', error);
@@ -92,7 +98,12 @@ export function PosDevicesPage() {
 
   const openEditModal = (device: PosDevice) => {
     setEditingDevice(device);
-    setEditFormData({ name: device.name || '' });
+    setEditFormData({
+      name: device.name || '',
+      min: device.min || '',
+      serialNumber: device.serialNumber || '',
+      permitNumber: device.permitNumber || '',
+    });
     setIsEditModalOpen(true);
   };
 
@@ -264,7 +275,7 @@ export function PosDevicesPage() {
         isOpen={isCreateModalOpen}
         onClose={() => {
           setIsCreateModalOpen(false);
-          setCreateFormData({ branchId: '', name: '' });
+          setCreateFormData({ branchId: '', name: '', min: '', serialNumber: '', permitNumber: '' });
         }}
         title="Add New POS Device"
         size="md"
@@ -284,6 +295,32 @@ export function PosDevicesPage() {
             onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
             placeholder="e.g., Counter 1, Drive-Thru"
           />
+
+          {/* BIR MIN Compliance Section */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">BIR MIN (Machine Identification Number) Settings</h3>
+            <div className="space-y-4">
+              <Input
+                label="MIN (Machine Identification Number)"
+                value={createFormData.min}
+                onChange={(e) => setCreateFormData({ ...createFormData, min: e.target.value })}
+                placeholder="e.g., MIN-2024-000001"
+              />
+              <Input
+                label="Serial Number"
+                value={createFormData.serialNumber}
+                onChange={(e) => setCreateFormData({ ...createFormData, serialNumber: e.target.value })}
+                placeholder="POS terminal serial number"
+              />
+              <Input
+                label="Permit Number"
+                value={createFormData.permitNumber}
+                onChange={(e) => setCreateFormData({ ...createFormData, permitNumber: e.target.value })}
+                placeholder="BIR Permit Number"
+              />
+            </div>
+          </div>
+
           <p className="text-sm text-gray-500">
             A registration code will be generated that you can use to connect the POS device.
           </p>
@@ -302,7 +339,7 @@ export function PosDevicesPage() {
         onClose={() => {
           setIsEditModalOpen(false);
           setEditingDevice(null);
-          setEditFormData({ name: '' });
+          setEditFormData({ name: '', min: '', serialNumber: '', permitNumber: '' });
         }}
         title="Edit Device"
         size="md"
@@ -314,6 +351,32 @@ export function PosDevicesPage() {
             onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
             placeholder="Optional friendly name"
           />
+
+          {/* BIR MIN Compliance Section */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">BIR MIN (Machine Identification Number) Settings</h3>
+            <div className="space-y-4">
+              <Input
+                label="MIN (Machine Identification Number)"
+                value={editFormData.min}
+                onChange={(e) => setEditFormData({ ...editFormData, min: e.target.value })}
+                placeholder="e.g., MIN-2024-000001"
+              />
+              <Input
+                label="Serial Number"
+                value={editFormData.serialNumber}
+                onChange={(e) => setEditFormData({ ...editFormData, serialNumber: e.target.value })}
+                placeholder="POS terminal serial number"
+              />
+              <Input
+                label="Permit Number"
+                value={editFormData.permitNumber}
+                onChange={(e) => setEditFormData({ ...editFormData, permitNumber: e.target.value })}
+                placeholder="BIR Permit Number"
+              />
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsEditModalOpen(false)}>
               Cancel

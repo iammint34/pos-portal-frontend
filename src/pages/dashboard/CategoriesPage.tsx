@@ -27,10 +27,11 @@ export function CategoriesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState<Omit<CreateCategoryDto, 'storeId'>>({
+  const [formData, setFormData] = useState<Omit<CreateCategoryDto, 'storeId'> & { isActive?: boolean }>({
     name: '',
     description: '',
     sortOrder: 0,
+    isActive: true,
   });
 
   const fetchCategories = async () => {
@@ -69,7 +70,7 @@ export function CategoriesPage() {
       }
       setIsModalOpen(false);
       setEditingCategory(null);
-      setFormData({ name: '', description: '', sortOrder: 0 });
+      setFormData({ name: '', description: '', sortOrder: 0, isActive: true });
       fetchCategories();
     } catch (error) {
       console.error('Failed to save category:', error);
@@ -82,6 +83,7 @@ export function CategoriesPage() {
       name: category.name,
       description: category.description || '',
       sortOrder: category.sortOrder,
+      isActive: category.isActive,
     });
     setIsModalOpen(true);
   };
@@ -196,7 +198,7 @@ export function CategoriesPage() {
         onClose={() => {
           setIsModalOpen(false);
           setEditingCategory(null);
-          setFormData({ name: '', description: '', sortOrder: 0 });
+          setFormData({ name: '', description: '', sortOrder: 0, isActive: true });
         }}
         title={editingCategory ? 'Edit Category' : 'Add Category'}
         size="md"
@@ -219,6 +221,18 @@ export function CategoriesPage() {
             value={formData.sortOrder}
             onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
           />
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={formData.isActive ?? true}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+              Active
+            </label>
+          </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel

@@ -32,6 +32,11 @@ export interface Store {
   address?: string;
   phone?: string;
   email?: string;
+  // BIR Compliance Fields
+  registeredName?: string;
+  registeredAddress?: string;
+  vatTin?: string;
+  isVatRegistered?: boolean;
   createdAt: string;
   updatedAt: string;
   _count?: {
@@ -51,6 +56,11 @@ export interface Branch {
   phone?: string;
   status: BranchStatus;
   lastSyncAt?: string;
+  // BIR Compliance Fields (PTU - Permit To Use)
+  ptuNo?: string;
+  ptuDateIssued?: string;
+  ptuValidUntil?: string;
+  accreditationNo?: string;
   createdAt: string;
   updatedAt: string;
   store?: {
@@ -113,6 +123,10 @@ export interface PosDevice {
   registrationCodeExpiresAt?: string;
   isRegistered?: boolean;
   registeredAt?: string;
+  // BIR Compliance Fields
+  min?: string;
+  serialNumber?: string;
+  permitNumber?: string;
   createdAt: string;
   updatedAt: string;
   branch?: {
@@ -207,10 +221,10 @@ export interface PaginatedResponse<T> {
 }
 
 // Sales/Order types
-export type OrderStatus = 'PENDING' | 'COMPLETED' | 'VOIDED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
+export type OrderStatus = 'PENDING' | 'COMPLETED' | 'VOIDED' | 'REFUNDED';
 export type OrderType = 'DINE_IN' | 'TAKEOUT' | 'DELIVERY' | 'DRIVE_THRU';
 export type PaymentMethod = 'CASH' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'MOBILE_PAYMENT' | 'GIFT_CARD' | 'STORE_CREDIT' | 'OTHER';
-export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
+export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 export type DiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT';
 export type DiscountScope = 'ORDER' | 'ITEM';
 
@@ -339,4 +353,293 @@ export interface SalesSummary {
     amount: number;
     tips: number;
   }[];
+}
+
+// Shift types
+export type ShiftStatus = 'OPEN' | 'CLOSED';
+export type CashMovementType =
+  | 'OPENING_FLOAT'
+  | 'CASH_SALE'
+  | 'CHANGE_GIVEN'
+  | 'TIP_CASH'
+  | 'PAID_OUT'
+  | 'DROP'
+  | 'CASH_IN'
+  | 'REFUND'
+  | 'CLOSING_COUNT';
+
+export interface CashMovement {
+  id: string;
+  shiftId: string;
+  movementType: CashMovementType;
+  amount: number;
+  referenceType?: string;
+  referenceId?: string;
+  reason?: string;
+  performedBy: string;
+  performedAt: string;
+  createdAt: string;
+}
+
+export interface ShiftSummary {
+  openingCash: number;
+  totalCashSales: number;
+  totalChangeGiven: number;
+  totalCashRefunds: number;
+  totalPaidOuts: number;
+  totalDrops: number;
+  totalCashIn: number;
+  expectedCash: number;
+  orderCount: number;
+}
+
+export interface Shift {
+  id: string;
+  posShiftId?: string;
+  posDeviceId: string;
+  branchId: string;
+  storeId: string;
+  operatorId?: string;
+  posOperatorId?: string;
+  status: ShiftStatus;
+  openedAt: string;
+  closedAt?: string;
+  openingCash: number;
+  closingCash?: number;
+  expectedCash?: number;
+  variance?: number;
+  notes?: string;
+  syncedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  posDevice?: {
+    id: string;
+    name?: string;
+    deviceIdentifier: string;
+    branch?: {
+      id: string;
+      name: string;
+    };
+  };
+  operator?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  cashMovements?: CashMovement[];
+  summary?: ShiftSummary;
+  _count?: {
+    orders: number;
+    cashMovements: number;
+  };
+}
+
+// Report types
+export interface ReportQueryParams {
+  storeId?: string;
+  branchId?: string;
+  posDeviceId?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface DashboardStats {
+  todaySales: number;
+  todayOrders: number;
+  todayAvgOrder: number;
+  yesterdaySales: number;
+  yesterdayOrders: number;
+  weekSales: number;
+  weekOrders: number;
+  monthSales: number;
+  monthOrders: number;
+  salesGrowth: number;
+  ordersGrowth: number;
+}
+
+export interface ReportSalesSummary {
+  totalOrders: number;
+  completedOrders: number;
+  voidedOrders: number;
+  grossSales: number;
+  totalDiscounts: number;
+  totalRefunds: number;
+  netSales: number;
+  totalTax: number;
+  vatableSales: number;
+  vatAmount: number;
+  vatExemptSales: number;
+  zeroRatedSales: number;
+  cashSales: number;
+  cardSales: number;
+  otherSales: number;
+  averageOrderValue: number;
+  periodStart: string;
+  periodEnd: string;
+}
+
+export interface SalesByBranch {
+  branchId: string;
+  branchName: string;
+  orderCount: number;
+  grossSales: number;
+  discounts: number;
+  refunds: number;
+  netSales: number;
+  percentage: number;
+}
+
+export interface SalesByDevice {
+  posDeviceId: string;
+  deviceName: string;
+  branchName: string;
+  orderCount: number;
+  grossSales: number;
+  discounts: number;
+  netSales: number;
+  percentage: number;
+}
+
+export interface SalesByCategory {
+  categoryId: string;
+  categoryName: string;
+  itemCount: number;
+  quantitySold: number;
+  grossSales: number;
+  discounts: number;
+  netSales: number;
+  percentage: number;
+}
+
+export interface SalesByItem {
+  itemId: string;
+  itemName: string;
+  itemSku?: string;
+  categoryName?: string;
+  quantitySold: number;
+  grossSales: number;
+  discounts: number;
+  netSales: number;
+  averagePrice: number;
+}
+
+export interface TopSellingItem extends SalesByItem {
+  revenue: number;
+  rank: number;
+}
+
+export interface SalesByPaymentMethod {
+  paymentMethod: string;
+  transactionCount: number;
+  totalAmount: number;
+  tipAmount: number;
+  percentage: number;
+}
+
+export interface SalesByHour {
+  hour: number;
+  hourLabel: string;
+  orderCount: number;
+  totalSales: number;
+  itemsSold: number;
+}
+
+export interface SalesTrend {
+  date: string;
+  orderCount: number;
+  grossSales: number;
+  netSales: number;
+}
+
+export interface TransactionReport {
+  id: string;
+  orderNumber: string;
+  invoiceNumber?: string;
+  orderType: string;
+  status: string;
+  customerName?: string;
+  subtotal: number;
+  discountTotal: number;
+  taxTotal: number;
+  grandTotal: number;
+  itemCount: number;
+  paymentMethod?: string;
+  branchName: string;
+  deviceName: string;
+  createdAt: string;
+  closedAt?: string;
+}
+
+export interface VoidedTransaction {
+  id: string;
+  orderNumber: string;
+  invoiceNumber?: string;
+  originalTotal: number;
+  voidReason?: string;
+  branchName: string;
+  deviceName: string;
+  voidedAt: string;
+}
+
+export interface DiscountReport {
+  discountName: string;
+  discountType: string;
+  discountScope: string;
+  timesApplied: number;
+  totalDiscountAmount: number;
+  ordersAffected: number;
+}
+
+export interface RefundReport {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  paymentMethod: string;
+  refundMethod: string;
+  amount: number;
+  reason?: string;
+  processedBy?: string;
+  branchName: string;
+  processedAt: string;
+}
+
+export interface ShiftReport {
+  id: string;
+  operatorName: string;
+  branchName: string;
+  deviceName: string;
+  status: string;
+  openedAt: string;
+  closedAt?: string;
+  duration?: string;
+  openingCash: number;
+  closingCash?: number;
+  expectedCash: number;
+  variance?: number;
+  orderCount: number;
+  totalSales: number;
+}
+
+export interface ZReadingReport {
+  id: string;
+  zCounterNo: number;
+  branchName: string;
+  deviceName: string;
+  readingDate: string;
+  beginningInvoice: string;
+  endingInvoice: string;
+  openingGrandTotal: number;
+  closingGrandTotal: number;
+  grossSales: number;
+  netSales: number;
+  vatableSales: number;
+  vatAmount: number;
+  vatExemptSales: number;
+  zeroRatedSales: number;
+  totalDiscounts: number;
+  totalRefunds: number;
+  totalVoids: number;
+  transactionCount: number;
 }

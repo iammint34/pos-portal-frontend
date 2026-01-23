@@ -5,3 +5,4 @@ export { Card, CardHeader, CardTitle, CardContent } from './Card';
 export { Modal } from './Modal';
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Table';
 export { Badge } from './Badge';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';

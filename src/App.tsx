@@ -12,6 +12,8 @@ import {
   ItemsPage,
   PosDevicesPage,
   OrdersPage,
+  ShiftsPage,
+  ReportsPage,
   UsersPage,
   RolesPage,
   AuditPage,
@@ -43,6 +45,8 @@ function App() {
               <Route path="items" element={<ItemsPage />} />
               <Route path="pos" element={<PosDevicesPage />} />
               <Route path="orders" element={<OrdersPage />} />
+              <Route path="shifts" element={<ShiftsPage />} />
+              <Route path="reports" element={<ReportsPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="roles" element={<RolesPage />} />
               <Route path="audit" element={<AuditPage />} />

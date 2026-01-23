@@ -4,3 +4,5 @@ export { storesApi } from './stores';
 export { branchesApi } from './branches';
 export { itemsApi } from './items';
 export { posApi } from './pos';
+export { shiftsApi } from './shifts';
+export { reportsApi } from './reports';

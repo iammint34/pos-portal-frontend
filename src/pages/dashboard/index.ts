@@ -5,6 +5,8 @@ export { CategoriesPage } from './CategoriesPage';
 export { ItemsPage } from './ItemsPage';
 export { PosDevicesPage } from './PosDevicesPage';
 export { OrdersPage } from './OrdersPage';
+export { ShiftsPage } from './ShiftsPage';
+export { ReportsPage } from './ReportsPage';
 export { UsersPage } from './UsersPage';
 export { RolesPage } from './RolesPage';
 export { AuditPage } from './AuditPage';
