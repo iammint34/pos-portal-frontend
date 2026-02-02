@@ -17,6 +17,8 @@ import {
   RefundReport,
   ShiftReport,
   ZReadingReport,
+  StaffSales,
+  StaffPerformance,
   PaginatedResponse,
 } from '../types';
 
@@ -163,9 +165,28 @@ export const reportsApi = {
 
   exportZReadings: async (params: ReportQueryParams): Promise<Blob> => {
     const response = await apiClient.get('/reports/z-readings/export', {
+      params,
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Staff Reports
+  getSalesByStaff: async (params: ReportQueryParams): Promise<StaffSales[]> => {
+    const response = await apiClient.get<StaffSales[]>('/reports/sales/by-staff', { params });
+    return response.data;
+  },
+
+  exportSalesByStaff: async (params: ReportQueryParams): Promise<Blob> => {
+    const response = await apiClient.get('/reports/sales/by-staff/export', {
       params: { ...params, format: 'csv' },
       responseType: 'blob',
     });
+    return response.data;
+  },
+
+  getStaffPerformance: async (params: ReportQueryParams): Promise<StaffPerformance[]> => {
+    const response = await apiClient.get<StaffPerformance[]>('/reports/staff/performance', { params });
     return response.data;
   },
 };

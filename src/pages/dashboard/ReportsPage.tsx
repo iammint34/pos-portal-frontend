@@ -20,6 +20,8 @@ import {
   RefundReport,
   ShiftReport,
   ZReadingReport,
+  StaffSales,
+  StaffPerformance,
   Branch,
 } from '../../types';
 import {
@@ -56,6 +58,7 @@ import {
   FileText,
   Building2,
   Monitor,
+  Users,
 } from 'lucide-react';
 import { formatDateTime, formatCurrency } from '../../lib/utils';
 import { cn } from '../../lib/utils';
@@ -90,6 +93,8 @@ export function ReportsPage() {
   const [refundReport, setRefundReport] = useState<RefundReport[]>([]);
   const [shiftReport, setShiftReport] = useState<ShiftReport[]>([]);
   const [zReadings, setZReadings] = useState<ZReadingReport[]>([]);
+  const [staffSales, setStaffSales] = useState<StaffSales[]>([]);
+  const [staffPerformance, setStaffPerformance] = useState<StaffPerformance[]>([]);
 
   // Pagination states
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -208,6 +213,14 @@ export function ReportsPage() {
           const zr = await reportsApi.getZReadingHistory(params);
           setZReadings(zr.data);
           break;
+        case 'staff':
+          const [staffSalesData, staffPerfData] = await Promise.all([
+            reportsApi.getSalesByStaff(params),
+            reportsApi.getStaffPerformance(params),
+          ]);
+          setStaffSales(staffSalesData);
+          setStaffPerformance(staffPerfData);
+          break;
       }
     } catch (error) {
       console.error('Failed to fetch report data:', error);
@@ -240,6 +253,9 @@ export function ReportsPage() {
         case 'z-readings':
           blob = await reportsApi.exportZReadings(params);
           break;
+        case 'staff':
+          blob = await reportsApi.exportSalesByStaff(params);
+          break;
         default:
           return;
       }
@@ -247,7 +263,9 @@ export function ReportsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${exportType}-report-${filters.startDate}-${filters.endDate}.csv`;
+      // Z-Readings export as .txt (BIR format), others as .csv
+      const extension = exportType === 'z-readings' ? 'txt' : 'csv';
+      a.download = `${exportType}-report-${filters.startDate}-${filters.endDate}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -395,6 +413,7 @@ export function ReportsPage() {
           <TabsTrigger value="refunds">Refunds</TabsTrigger>
           <TabsTrigger value="shifts">Shifts</TabsTrigger>
           <TabsTrigger value="z-readings">Z-Readings</TabsTrigger>
+          <TabsTrigger value="staff">Staff</TabsTrigger>
         </TabsList>
 
         {/* Sales Summary Tab */}
@@ -1152,6 +1171,138 @@ export function ReportsPage() {
           </Card>
         </TabsContent>
 
+        {/* Staff Tab */}
+        <TabsContent value="staff">
+          <div className="space-y-6">
+            {/* Sales by Staff */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Sales by Staff
+                </CardTitle>
+                <Button variant="secondary" size="sm" onClick={() => handleExport('staff')}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Staff Name</TableHead>
+                      <TableHead className="text-right">Orders</TableHead>
+                      <TableHead className="text-right">Gross Sales</TableHead>
+                      <TableHead className="text-right">Discounts</TableHead>
+                      <TableHead className="text-right">Net Sales</TableHead>
+                      <TableHead className="text-right">Avg Order</TableHead>
+                      <TableHead className="text-right">%</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">Loading...</TableCell>
+                      </TableRow>
+                    ) : staffSales.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">No data available</TableCell>
+                      </TableRow>
+                    ) : (
+                      staffSales.map((row) => (
+                        <TableRow key={row.operatorId}>
+                          <TableCell className="font-medium">{row.operatorName}</TableCell>
+                          <TableCell className="text-right">{row.orderCount}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(row.grossSales)}</TableCell>
+                          <TableCell className="text-right text-red-600">-{formatCurrency(row.discounts)}</TableCell>
+                          <TableCell className="text-right font-medium">{formatCurrency(row.netSales)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(row.averageOrderValue)}</TableCell>
+                          <TableCell className="text-right">{row.percentage.toFixed(1)}%</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Staff Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Staff Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Staff Name</TableHead>
+                        <TableHead className="text-right">Orders</TableHead>
+                        <TableHead className="text-right">Sales</TableHead>
+                        <TableHead className="text-right">Avg Order</TableHead>
+                        <TableHead className="text-right">Voids</TableHead>
+                        <TableHead className="text-right">Refunds</TableHead>
+                        <TableHead className="text-right">Discounts</TableHead>
+                        <TableHead className="text-right">Shifts</TableHead>
+                        <TableHead className="text-right">Hours</TableHead>
+                        <TableHead className="text-right">Cash Variance</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={10} className="text-center py-8 text-gray-500">Loading...</TableCell>
+                        </TableRow>
+                      ) : staffPerformance.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={10} className="text-center py-8 text-gray-500">No data available</TableCell>
+                        </TableRow>
+                      ) : (
+                        staffPerformance.map((row) => (
+                          <TableRow key={row.operatorId}>
+                            <TableCell className="font-medium">{row.operatorName}</TableCell>
+                            <TableCell className="text-right">{row.orderCount}</TableCell>
+                            <TableCell className="text-right font-medium">{formatCurrency(row.totalSales)}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(row.averageOrderValue)}</TableCell>
+                            <TableCell className="text-right">
+                              {row.voidCount > 0 ? (
+                                <span className="text-red-600">{row.voidCount} ({formatCurrency(row.voidAmount)})</span>
+                              ) : '-'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {row.refundCount > 0 ? (
+                                <span className="text-red-600">{row.refundCount} ({formatCurrency(row.refundAmount)})</span>
+                              ) : '-'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {row.discountCount > 0 ? (
+                                <span className="text-orange-600">{row.discountCount} ({formatCurrency(row.discountAmount)})</span>
+                              ) : '-'}
+                            </TableCell>
+                            <TableCell className="text-right">{row.shiftCount}</TableCell>
+                            <TableCell className="text-right">{row.totalShiftHours.toFixed(1)}h</TableCell>
+                            <TableCell className={cn(
+                              "text-right font-medium",
+                              row.cashVariance > 0 ? 'text-blue-600' : row.cashVariance < 0 ? 'text-red-600' : ''
+                            )}>
+                              {row.cashVariance !== 0 ? (
+                                (row.cashVariance >= 0 ? '+' : '') + formatCurrency(row.cashVariance)
+                              ) : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         {/* Z-Readings Tab */}
         <TabsContent value="z-readings">
           <Card>
@@ -1162,52 +1313,84 @@ export function ReportsPage() {
               </CardTitle>
               <Button variant="secondary" size="sm" onClick={() => handleExport('z-readings')}>
                 <Download className="w-4 h-4 mr-2" />
-                Export
+                Export BIR Report
               </Button>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Z#</TableHead>
-                    <TableHead>Branch</TableHead>
-                    <TableHead>Device</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Invoice Range</TableHead>
-                    <TableHead className="text-right">Transactions</TableHead>
-                    <TableHead className="text-right">Gross Sales</TableHead>
-                    <TableHead className="text-right">Net Sales</TableHead>
-                    <TableHead className="text-right">VAT</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">Loading...</TableCell>
+                      <TableHead>Z#</TableHead>
+                      <TableHead>Date/Time</TableHead>
+                      <TableHead>Branch / Device</TableHead>
+                      <TableHead>OR Range</TableHead>
+                      <TableHead className="text-right">Trans</TableHead>
+                      <TableHead className="text-right">Gross Sales</TableHead>
+                      <TableHead className="text-right">Discounts</TableHead>
+                      <TableHead className="text-right">Refunds</TableHead>
+                      <TableHead className="text-right">Voids</TableHead>
+                      <TableHead className="text-right">Net Sales</TableHead>
+                      <TableHead className="text-right">VAT</TableHead>
+                      <TableHead className="text-right">Old GT</TableHead>
+                      <TableHead className="text-right">New GT</TableHead>
                     </TableRow>
-                  ) : zReadings.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">No Z-readings</TableCell>
-                    </TableRow>
-                  ) : (
-                    zReadings.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell className="font-medium">{row.zCounterNo}</TableCell>
-                        <TableCell>{row.branchName}</TableCell>
-                        <TableCell>{row.deviceName}</TableCell>
-                        <TableCell>{row.readingDate}</TableCell>
-                        <TableCell className="text-gray-500">
-                          {row.beginningInvoice} - {row.endingInvoice}
-                        </TableCell>
-                        <TableCell className="text-right">{row.transactionCount}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(row.grossSales)}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(row.netSales)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(row.vatAmount)}</TableCell>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={13} className="text-center py-8 text-gray-500">Loading...</TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : zReadings.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={13} className="text-center py-8 text-gray-500">No Z-readings</TableCell>
+                      </TableRow>
+                    ) : (
+                      zReadings.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell className="font-mono font-medium">
+                            {String(row.zCounterNo).padStart(6, '0')}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {formatDateTime(row.readingDate)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-medium">{row.branchName}</div>
+                            <div className="text-xs text-gray-500">{row.deviceName}</div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-gray-600">
+                            {row.beginningInvoice}<br/>
+                            {row.endingInvoice}
+                          </TableCell>
+                          <TableCell className="text-right">{row.transactionCount}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(row.grossSales)}</TableCell>
+                          <TableCell className="text-right text-red-600">
+                            {row.totalDiscounts > 0 ? `-${formatCurrency(row.totalDiscounts)}` : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-red-600">
+                            {row.totalRefunds > 0 ? `-${formatCurrency(row.totalRefunds)}` : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-red-600">
+                            {row.totalVoids > 0 ? `-${formatCurrency(row.totalVoids)}` : '-'}
+                          </TableCell>
+                          <TableCell className="text-right font-medium text-green-600">
+                            {formatCurrency(row.netSales)}
+                          </TableCell>
+                          <TableCell className="text-right text-gray-600">
+                            {formatCurrency(row.vatAmount)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs text-gray-500">
+                            {formatCurrency(row.openingGrandTotal)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs font-medium">
+                            {formatCurrency(row.closingGrandTotal)}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

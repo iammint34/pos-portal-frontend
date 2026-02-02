@@ -643,3 +643,133 @@ export interface ZReadingReport {
   totalVoids: number;
   transactionCount: number;
 }
+
+// Staff report types
+export interface StaffSales {
+  operatorId: string;
+  operatorName: string;
+  orderCount: number;
+  grossSales: number;
+  discounts: number;
+  netSales: number;
+  averageOrderValue: number;
+  percentage: number;
+}
+
+export interface StaffPerformance {
+  operatorId: string;
+  operatorName: string;
+  orderCount: number;
+  totalSales: number;
+  averageOrderValue: number;
+  voidCount: number;
+  voidAmount: number;
+  refundCount: number;
+  refundAmount: number;
+  discountCount: number;
+  discountAmount: number;
+  shiftCount: number;
+  totalShiftHours: number;
+  cashVariance: number;
+}
+
+// Alert types
+export type AlertType =
+  | 'ZERO_SALES_BRANCH'
+  | 'EXCESSIVE_VOID_REFUND'
+  | 'INVENTORY_ANOMALY'
+  | 'POS_SYNC_FAILURE';
+
+export type AlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
+
+export interface Alert {
+  id: string;
+  storeId: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  title: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+  acknowledgedAt?: string;
+  acknowledgedBy?: string;
+  dismissedAt?: string;
+  dismissedBy?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AlertConfig {
+  alertType: AlertType;
+  enabled: boolean;
+  thresholds: Record<string, unknown>;
+  cooldownMinutes: number;
+}
+
+export interface AlertCountResponse {
+  count: number;
+  bySeverity: {
+    INFO: number;
+    WARNING: number;
+    CRITICAL: number;
+  };
+}
+
+// Inventory types
+export type MovementType =
+  | 'RECEIVED'
+  | 'SOLD'
+  | 'ADJUSTED_UP'
+  | 'ADJUSTED_DOWN'
+  | 'WASTED'
+  | 'VOIDED_SALE'
+  | 'REFUNDED'
+  | 'TRANSFER_IN'
+  | 'TRANSFER_OUT';
+
+export interface BranchInventory {
+  id: string;
+  itemId: string;
+  branchId: string;
+  storeId: string;
+  currentQuantity: number;
+  lowStockThreshold?: number;
+  isTracked: boolean;
+  createdAt: string;
+  updatedAt: string;
+  item?: {
+    id: string;
+    name: string;
+    sku?: string;
+    price: number;
+    category?: {
+      id: string;
+      name: string;
+    };
+  };
+  branch?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface InventoryMovement {
+  id: string;
+  movementId: string;
+  branchInventoryId: string;
+  itemId: string;
+  branchId: string;
+  storeId: string;
+  movementType: MovementType;
+  quantity: number;
+  previousQuantity: number;
+  newQuantity: number;
+  referenceType?: string;
+  referenceId?: string;
+  posDeviceId?: string;
+  reason?: string;
+  performedBy?: string;
+  performedAt: string;
+  syncedAt?: string;
+  createdAt: string;
+}

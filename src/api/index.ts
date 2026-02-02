@@ -6,3 +6,4 @@ export { itemsApi } from './items';
 export { posApi } from './pos';
 export { shiftsApi } from './shifts';
 export { reportsApi } from './reports';
+export { alertsApi } from './alerts';

@@ -21,6 +21,14 @@ import {
 import { Plus, Pencil, Trash2, Shield, Check } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
 
+const MODULE_DISPLAY_NAMES: Record<string, string> = {
+  pos_function: 'POS Functions',
+};
+
+function formatModuleName(module: string): string {
+  return MODULE_DISPLAY_NAMES[module] || module.charAt(0).toUpperCase() + module.slice(1);
+}
+
 export function RolesPage() {
   const { currentStore } = useStore();
   const [roles, setRoles] = useState<Role[]>([]);
@@ -249,7 +257,7 @@ export function RolesPage() {
                     className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
                     onClick={() => toggleModulePermissions(group.permissions)}
                   >
-                    <span className="font-medium text-gray-900 capitalize">{group.module}</span>
+                    <span className="font-medium text-gray-900">{formatModuleName(group.module)}</span>
                     <span className="text-sm text-gray-500">
                       {group.permissions.filter((p) => formData.permissions.includes(p.code)).length} / {group.permissions.length}
                     </span>

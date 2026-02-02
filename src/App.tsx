@@ -10,6 +10,7 @@ import {
   BranchesPage,
   CategoriesPage,
   ItemsPage,
+  InventoryPage,
   PosDevicesPage,
   OrdersPage,
   ShiftsPage,
@@ -17,6 +18,7 @@ import {
   UsersPage,
   RolesPage,
   AuditPage,
+  AlertsPage,
 } from './pages/dashboard';
 
 const queryClient = new QueryClient({
@@ -43,6 +45,7 @@ function App() {
               <Route path="branches" element={<BranchesPage />} />
               <Route path="categories" element={<CategoriesPage />} />
               <Route path="items" element={<ItemsPage />} />
+              <Route path="inventory" element={<InventoryPage />} />
               <Route path="pos" element={<PosDevicesPage />} />
               <Route path="orders" element={<OrdersPage />} />
               <Route path="shifts" element={<ShiftsPage />} />
@@ -50,6 +53,7 @@ function App() {
               <Route path="users" element={<UsersPage />} />
               <Route path="roles" element={<RolesPage />} />
               <Route path="audit" element={<AuditPage />} />
+              <Route path="alerts" element={<AlertsPage />} />
             </Route>
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>

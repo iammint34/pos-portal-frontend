@@ -6,10 +6,12 @@ import {
   Building2,
   FolderTree,
   Package,
+  Boxes,
   Monitor,
   Receipt,
   Clock,
   BarChart3,
+  Bell,
   Users,
   Shield,
   FileText,
@@ -29,10 +31,12 @@ const storeNavigation = [
   { name: 'Branches', href: '/branches', icon: Building2 },
   { name: 'Categories', href: '/categories', icon: FolderTree },
   { name: 'Items', href: '/items', icon: Package },
+  { name: 'Inventory', href: '/inventory', icon: Boxes },
   { name: 'POS Devices', href: '/pos', icon: Monitor },
   { name: 'Orders', href: '/orders', icon: Receipt },
   { name: 'Shifts', href: '/shifts', icon: Clock },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
+  { name: 'Alerts', href: '/alerts', icon: Bell },
 ];
 
 const systemNavigation = [
