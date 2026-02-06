@@ -1,5 +1,14 @@
 import apiClient from './client';
-import { Store, PaginatedResponse, StoreType, StoreStatus } from '../types';
+import {
+  Store,
+  PaginatedResponse,
+  StoreType,
+  StoreStatus,
+  CloneStoreRequest,
+  CloneStoreResult,
+  CloneJob,
+  ClonePreviewResponse,
+} from '../types';
 
 export interface CreateStoreDto {
   name: string;
@@ -51,5 +60,42 @@ export const storesApi = {
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/stores/${id}`);
+  },
+
+  // Clone operations
+  clone: async (data: CloneStoreRequest): Promise<CloneStoreResult> => {
+    const response = await apiClient.post<CloneStoreResult>('/clone/store', data);
+    return response.data;
+  },
+
+  previewClone: async (
+    storeId: string,
+    data: { type: 'STORE'; sourceId: string; config?: CloneStoreRequest['config'] }
+  ): Promise<ClonePreviewResponse> => {
+    const response = await apiClient.post<ClonePreviewResponse>(
+      `/stores/${storeId}/clone/preview`,
+      data
+    );
+    return response.data;
+  },
+
+  getCloneJobs: async (storeId: string, limit = 20): Promise<CloneJob[]> => {
+    const response = await apiClient.get<CloneJob[]>(
+      `/stores/${storeId}/clone/jobs`,
+      { params: { limit } }
+    );
+    return response.data;
+  },
+
+  getCloneJob: async (jobId: string): Promise<CloneJob> => {
+    const response = await apiClient.get<CloneJob>(`/clone/jobs/${jobId}`);
+    return response.data;
+  },
+
+  rollbackCloneJob: async (jobId: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>(
+      `/clone/jobs/${jobId}/rollback`
+    );
+    return response.data;
   },
 };

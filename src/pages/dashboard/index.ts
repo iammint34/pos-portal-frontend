@@ -12,3 +12,5 @@ export { UsersPage } from './UsersPage';
 export { RolesPage } from './RolesPage';
 export { AuditPage } from './AuditPage';
 export { AlertsPage } from './AlertsPage';
+export { LossPreventionPage } from './LossPreventionPage';
+export { NotificationsPage } from './NotificationsPage';

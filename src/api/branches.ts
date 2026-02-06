@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Branch, PaginatedResponse, BranchStatus } from '../types';
+import { Branch, PaginatedResponse, BranchStatus, CloneBranchRequest, CloneBranchResult } from '../types';
 
 export interface CreateBranchDto {
   storeId: string;
@@ -52,6 +52,14 @@ export const branchesApi = {
 
   getStats: async (id: string): Promise<{ posDevices: number; onlineDevices: number; itemsAvailable: number }> => {
     const response = await apiClient.get(`/branches/${id}/stats`);
+    return response.data;
+  },
+
+  clone: async (storeId: string, data: CloneBranchRequest): Promise<CloneBranchResult> => {
+    const response = await apiClient.post<CloneBranchResult>(
+      `/stores/${storeId}/clone/branch`,
+      data
+    );
     return response.data;
   },
 };

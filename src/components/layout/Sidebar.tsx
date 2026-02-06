@@ -12,8 +12,10 @@ import {
   Clock,
   BarChart3,
   Bell,
+  BellRing,
   Users,
   Shield,
+  ShieldAlert,
   FileText,
   Settings,
   ChevronDown,
@@ -37,6 +39,8 @@ const storeNavigation = [
   { name: 'Shifts', href: '/shifts', icon: Clock },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Alerts', href: '/alerts', icon: Bell },
+  { name: 'Loss Prevention', href: '/loss-prevention', icon: ShieldAlert },
+  { name: 'Notifications', href: '/notifications', icon: BellRing },
 ];
 
 const systemNavigation = [

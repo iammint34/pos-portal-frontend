@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { storesApi, CreateStoreDto, UpdateStoreDto } from '../../api/stores';
 import { useStore } from '../../contexts/StoreContext';
-import { Store, StoreType, StoreStatus } from '../../types';
+import { Store, StoreType, StoreStatus, CloneStoreRequest, CloneStoreConfig } from '../../types';
 import {
   Button,
   Card,
@@ -19,7 +19,7 @@ import {
   Input,
   Select,
 } from '../../components/ui';
-import { Plus, Pencil, Trash2, Store as StoreIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Store as StoreIcon, Copy } from 'lucide-react';
 import { formatDate } from '../../lib/utils';
 
 export function StoresPage() {
@@ -38,6 +38,40 @@ export function StoresPage() {
     registeredAddress: '',
     vatTin: '',
     isVatRegistered: true,
+  });
+
+  // Clone modal state
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [cloningStore, setCloningStore] = useState<Store | null>(null);
+  const [isCloning, setIsCloning] = useState(false);
+  const [cloneFormData, setCloneFormData] = useState<{
+    name: string;
+    type: StoreType;
+    address: string;
+    phone: string;
+    email: string;
+    registeredName: string;
+    registeredAddress: string;
+    vatTin: string;
+    isVatRegistered: boolean;
+    config: CloneStoreConfig;
+  }>({
+    name: '',
+    type: 'OTHER',
+    address: '',
+    phone: '',
+    email: '',
+    registeredName: '',
+    registeredAddress: '',
+    vatTin: '',
+    isVatRegistered: true,
+    config: {
+      items: true,
+      categories: true,
+      roles: true,
+      lossPreventionThresholds: true,
+      storeFeatures: false,
+    },
   });
 
   const fetchStores = async () => {
@@ -99,6 +133,61 @@ export function StoresPage() {
       refreshStoreContext();
     } catch (error) {
       console.error('Failed to delete store:', error);
+    }
+  };
+
+  const openCloneModal = (store: Store) => {
+    setCloningStore(store);
+    setCloneFormData({
+      name: `Copy of ${store.name}`,
+      type: store.type,
+      address: '',
+      phone: '',
+      email: '',
+      registeredName: '',
+      registeredAddress: '',
+      vatTin: '',
+      isVatRegistered: true,
+      config: {
+        items: true,
+        categories: true,
+        roles: true,
+        lossPreventionThresholds: true,
+        storeFeatures: false,
+      },
+    });
+    setIsCloneModalOpen(true);
+  };
+
+  const handleClone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cloningStore) return;
+
+    setIsCloning(true);
+    try {
+      const request: CloneStoreRequest = {
+        sourceStoreId: cloningStore.id,
+        name: cloneFormData.name,
+        type: cloneFormData.type,
+        address: cloneFormData.address || undefined,
+        phone: cloneFormData.phone || undefined,
+        email: cloneFormData.email || undefined,
+        registeredName: cloneFormData.registeredName || undefined,
+        registeredAddress: cloneFormData.registeredAddress || undefined,
+        vatTin: cloneFormData.vatTin || undefined,
+        isVatRegistered: cloneFormData.isVatRegistered,
+        config: cloneFormData.config,
+      };
+
+      await storesApi.clone(request);
+      setIsCloneModalOpen(false);
+      setCloningStore(null);
+      fetchStores();
+      refreshStoreContext();
+    } catch (error) {
+      console.error('Failed to clone store:', error);
+    } finally {
+      setIsCloning(false);
     }
   };
 
@@ -170,6 +259,9 @@ export function StoresPage() {
                     <TableCell>{formatDate(store.createdAt)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => openCloneModal(store)} title="Clone Store">
+                          <Copy className="w-4 h-4 text-blue-500" />
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(store)}>
                           <Pencil className="w-4 h-4" />
                         </Button>
@@ -268,6 +360,169 @@ export function StoresPage() {
               Cancel
             </Button>
             <Button type="submit">{editingStore ? 'Update' : 'Create'}</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Clone Store Modal */}
+      <Modal
+        isOpen={isCloneModalOpen}
+        onClose={() => {
+          setIsCloneModalOpen(false);
+          setCloningStore(null);
+        }}
+        title={`Clone Store: ${cloningStore?.name || ''}`}
+        size="lg"
+      >
+        <form onSubmit={handleClone} className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
+            Create a new store based on <strong>{cloningStore?.name}</strong>. Select which data to copy to the new store.
+          </div>
+
+          <Input
+            label="New Store Name"
+            value={cloneFormData.name}
+            onChange={(e) => setCloneFormData({ ...cloneFormData, name: e.target.value })}
+            required
+          />
+
+          <Select
+            label="Store Type"
+            options={storeTypes}
+            value={cloneFormData.type}
+            onChange={(e) => setCloneFormData({ ...cloneFormData, type: e.target.value as StoreType })}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Address"
+              value={cloneFormData.address}
+              onChange={(e) => setCloneFormData({ ...cloneFormData, address: e.target.value })}
+              placeholder="Leave blank if different"
+            />
+            <Input
+              label="Phone"
+              value={cloneFormData.phone}
+              onChange={(e) => setCloneFormData({ ...cloneFormData, phone: e.target.value })}
+            />
+          </div>
+
+          <Input
+            label="Email"
+            type="email"
+            value={cloneFormData.email}
+            onChange={(e) => setCloneFormData({ ...cloneFormData, email: e.target.value })}
+          />
+
+          {/* Clone Options */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Data to Clone</h3>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={cloneFormData.config.categories}
+                  onChange={(e) => setCloneFormData({
+                    ...cloneFormData,
+                    config: { ...cloneFormData.config, categories: e.target.checked }
+                  })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Categories</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={cloneFormData.config.items}
+                  onChange={(e) => setCloneFormData({
+                    ...cloneFormData,
+                    config: { ...cloneFormData.config, items: e.target.checked }
+                  })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Items (Menu/Products)</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={cloneFormData.config.roles}
+                  onChange={(e) => setCloneFormData({
+                    ...cloneFormData,
+                    config: { ...cloneFormData.config, roles: e.target.checked }
+                  })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Roles & Permissions</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={cloneFormData.config.lossPreventionThresholds}
+                  onChange={(e) => setCloneFormData({
+                    ...cloneFormData,
+                    config: { ...cloneFormData.config, lossPreventionThresholds: e.target.checked }
+                  })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Loss Prevention Thresholds</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={cloneFormData.config.storeFeatures}
+                  onChange={(e) => setCloneFormData({
+                    ...cloneFormData,
+                    config: { ...cloneFormData.config, storeFeatures: e.target.checked }
+                  })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Feature Flags</span>
+              </label>
+            </div>
+          </div>
+
+          {/* BIR Compliance Section */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">BIR Compliance (Optional)</h3>
+            <div className="space-y-4">
+              <Input
+                label="BIR Registered Name"
+                value={cloneFormData.registeredName}
+                onChange={(e) => setCloneFormData({ ...cloneFormData, registeredName: e.target.value })}
+                placeholder="Official business name registered with BIR"
+              />
+              <Input
+                label="BIR Registered Address"
+                value={cloneFormData.registeredAddress}
+                onChange={(e) => setCloneFormData({ ...cloneFormData, registeredAddress: e.target.value })}
+                placeholder="Address registered with BIR"
+              />
+              <Input
+                label="VAT TIN"
+                value={cloneFormData.vatTin}
+                onChange={(e) => setCloneFormData({ ...cloneFormData, vatTin: e.target.value })}
+                placeholder="e.g., 123-456-789-000"
+              />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={cloneFormData.isVatRegistered}
+                  onChange={(e) => setCloneFormData({ ...cloneFormData, isVatRegistered: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">VAT Registered Business</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={() => setIsCloneModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={isCloning}>
+              <Copy className="w-4 h-4 mr-2" />
+              Clone Store
+            </Button>
           </div>
         </form>
       </Modal>

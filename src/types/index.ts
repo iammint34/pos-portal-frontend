@@ -715,6 +715,253 @@ export interface AlertCountResponse {
   };
 }
 
+// Clone types
+export type CloneType = 'BRANCH' | 'STORE';
+export type CloneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'ROLLED_BACK';
+
+export interface CloneStoreConfig {
+  items?: boolean;
+  categories?: boolean;
+  roles?: boolean;
+  lossPreventionThresholds?: boolean;
+  storeFeatures?: boolean;
+}
+
+export interface CloneBranchConfig {
+  itemBranches?: boolean;
+}
+
+export interface CloneStoreRequest {
+  sourceStoreId: string;
+  name: string;
+  type?: StoreType;
+  address?: string;
+  phone?: string;
+  email?: string;
+  config?: CloneStoreConfig;
+  registeredName?: string;
+  registeredAddress?: string;
+  vatTin?: string;
+  isVatRegistered?: boolean;
+}
+
+export interface CloneBranchRequest {
+  sourceBranchId: string;
+  name: string;
+  address?: string;
+  phone?: string;
+  config?: CloneBranchConfig;
+  ptuNo?: string;
+  accreditationNo?: string;
+}
+
+export interface CloneJob {
+  id: string;
+  storeId: string;
+  type: CloneType;
+  sourceId: string;
+  targetId: string | null;
+  targetName: string;
+  config: CloneStoreConfig | CloneBranchConfig;
+  status: CloneStatus;
+  errorMessage: string | null;
+  createdBy: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CloneStoreResult {
+  job: CloneJob;
+  store: Store;
+}
+
+export interface CloneBranchResult {
+  job: CloneJob;
+  branch: Branch;
+}
+
+export interface ClonePreviewItem {
+  type: string;
+  count: number;
+  label: string;
+}
+
+export interface ClonePreviewResponse {
+  type: CloneType;
+  sourceId: string;
+  sourceName: string;
+  items: ClonePreviewItem[];
+  totalItems: number;
+}
+
+// Loss Prevention types
+export type LossPreventionMetricType =
+  | 'VOID_COUNT'
+  | 'VOID_AMOUNT'
+  | 'REFUND_COUNT'
+  | 'REFUND_AMOUNT'
+  | 'DISCOUNT_PERCENTAGE'
+  | 'CONSECUTIVE_VOIDS';
+
+export type LossPreventionTimeWindow = 'SHIFT' | 'DAY' | 'WEEK';
+export type LossPreventionScope = 'BRANCH' | 'STAFF' | 'POS_DEVICE';
+export type IncidentStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED' | 'ESCALATED';
+export type LPAlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface LossPreventionThreshold {
+  id: string;
+  storeId: string;
+  metricType: LossPreventionMetricType;
+  threshold: number;
+  timeWindow: LossPreventionTimeWindow;
+  scope: LossPreventionScope;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
+export interface LossPreventionIncident {
+  id: string;
+  storeId: string;
+  branchId: string;
+  staffId?: string;
+  posDeviceId?: string;
+  metricType: LossPreventionMetricType;
+  actualValue: number;
+  thresholdValue: number;
+  timeWindow: LossPreventionTimeWindow;
+  severity: LPAlertSeverity;
+  status: IncidentStatus;
+  transactions: string[];
+  acknowledgedBy?: string;
+  acknowledgedAt?: string;
+  resolvedBy?: string;
+  resolvedAt?: string;
+  resolution?: string;
+  escalatedBy?: string;
+  escalatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  branch?: {
+    id: string;
+    name: string;
+  };
+  staff?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface ThresholdWithStats extends LossPreventionThreshold {
+  incidentCount: number;
+  lastTriggeredAt?: string;
+}
+
+export interface LPDashboardSummary {
+  totalThresholds: number;
+  enabledThresholds: number;
+  totalIncidents: number;
+  openIncidents: number;
+  acknowledgedIncidents: number;
+  resolvedIncidents: number;
+  escalatedIncidents: number;
+  incidentsBySeverity: {
+    LOW: number;
+    MEDIUM: number;
+    HIGH: number;
+    CRITICAL: number;
+  };
+  recentIncidents: LossPreventionIncident[];
+}
+
+export interface LPIncidentStats {
+  total: number;
+  byStatus: {
+    OPEN: number;
+    ACKNOWLEDGED: number;
+    RESOLVED: number;
+    ESCALATED: number;
+  };
+  bySeverity: {
+    LOW: number;
+    MEDIUM: number;
+    HIGH: number;
+    CRITICAL: number;
+  };
+  byMetricType: Record<string, number>;
+}
+
+// Notification types
+export type NotificationType =
+  | 'DAILY_DIGEST'
+  | 'WEEKLY_SUMMARY'
+  | 'LOSS_PREVENTION_ALERT'
+  | 'DEVICE_OFFLINE'
+  | 'SYNC_FAILURE'
+  | 'SYSTEM_ALERT';
+
+export type NotificationChannel = 'EMAIL' | 'SMS' | 'PUSH';
+export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED';
+
+export interface NotificationPreference {
+  id: string;
+  storeId: string;
+  userId: string;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  dailyDigest: boolean;
+  weeklySummary: boolean;
+  alertsEnabled: boolean;
+  email?: string;
+  phone?: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface NotificationLog {
+  id: string;
+  storeId: string;
+  userId?: string;
+  type: NotificationType;
+  channel: NotificationChannel;
+  recipient: string;
+  subject?: string;
+  content: string;
+  status: NotificationStatus;
+  errorMessage?: string;
+  sentAt?: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export interface NotificationSchedule {
+  id: string;
+  storeId: string;
+  type: NotificationType;
+  schedule: string;
+  timezone: string;
+  enabled: boolean;
+  lastRunAt?: string;
+  nextRunAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Inventory types
 export type MovementType =
   | 'RECEIVED'

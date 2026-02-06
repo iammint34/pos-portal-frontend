@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { branchesApi, CreateBranchDto, UpdateBranchDto } from '../../api/branches';
 import { posApi } from '../../api/pos';
-import { Branch, BranchStatus, PosDevice, PosStatus } from '../../types';
+import { Branch, BranchStatus, PosDevice, PosStatus, CloneBranchRequest, CloneBranchConfig } from '../../types';
 import { useStore } from '../../contexts/StoreContext';
 import {
   Button,
@@ -20,7 +20,7 @@ import {
   Input,
   Select,
 } from '../../components/ui';
-import { Plus, Pencil, Trash2, Building2, ChevronDown, ChevronRight, Monitor } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, ChevronDown, ChevronRight, Monitor, Copy } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
 
 interface BranchWithDevices extends Branch {
@@ -48,6 +48,28 @@ export function BranchesPage() {
     ptuDateIssued: '',
     ptuValidUntil: '',
     accreditationNo: '',
+  });
+
+  // Clone modal state
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [cloningBranch, setCloningBranch] = useState<Branch | null>(null);
+  const [isCloning, setIsCloning] = useState(false);
+  const [cloneFormData, setCloneFormData] = useState<{
+    name: string;
+    address: string;
+    phone: string;
+    ptuNo: string;
+    accreditationNo: string;
+    config: CloneBranchConfig;
+  }>({
+    name: '',
+    address: '',
+    phone: '',
+    ptuNo: '',
+    accreditationNo: '',
+    config: {
+      itemBranches: true,
+    },
   });
 
   const fetchBranches = async () => {
@@ -204,6 +226,48 @@ export function BranchesPage() {
     }
   };
 
+  const openCloneModal = (branch: Branch) => {
+    setCloningBranch(branch);
+    setCloneFormData({
+      name: `Copy of ${branch.name}`,
+      address: '',
+      phone: '',
+      ptuNo: '',
+      accreditationNo: '',
+      config: {
+        itemBranches: true,
+      },
+    });
+    setIsCloneModalOpen(true);
+  };
+
+  const handleClone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cloningBranch || !currentStore) return;
+
+    setIsCloning(true);
+    try {
+      const request: CloneBranchRequest = {
+        sourceBranchId: cloningBranch.id,
+        name: cloneFormData.name,
+        address: cloneFormData.address || undefined,
+        phone: cloneFormData.phone || undefined,
+        ptuNo: cloneFormData.ptuNo || undefined,
+        accreditationNo: cloneFormData.accreditationNo || undefined,
+        config: cloneFormData.config,
+      };
+
+      await branchesApi.clone(currentStore.id, request);
+      setIsCloneModalOpen(false);
+      setCloningBranch(null);
+      fetchBranches();
+    } catch (error) {
+      console.error('Failed to clone branch:', error);
+    } finally {
+      setIsCloning(false);
+    }
+  };
+
   const getStatusBadge = (status: BranchStatus) => {
     const variants: Record<BranchStatus, 'success' | 'warning' | 'danger'> = {
       ONLINE: 'success',
@@ -326,6 +390,9 @@ export function BranchesPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => openCloneModal(branch)} title="Clone Branch">
+                            <Copy className="w-4 h-4 text-blue-500" />
+                          </Button>
                           <Button variant="ghost" size="sm" onClick={() => handleEdit(branch)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -475,6 +542,91 @@ export function BranchesPage() {
               Cancel
             </Button>
             <Button type="submit">{editingBranch ? 'Update' : 'Create'}</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Clone Branch Modal */}
+      <Modal
+        isOpen={isCloneModalOpen}
+        onClose={() => {
+          setIsCloneModalOpen(false);
+          setCloningBranch(null);
+        }}
+        title={`Clone Branch: ${cloningBranch?.name || ''}`}
+        size="md"
+      >
+        <form onSubmit={handleClone} className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-700">
+            Create a new branch based on <strong>{cloningBranch?.name}</strong> within the same store.
+          </div>
+
+          <Input
+            label="New Branch Name"
+            value={cloneFormData.name}
+            onChange={(e) => setCloneFormData({ ...cloneFormData, name: e.target.value })}
+            required
+          />
+
+          <Input
+            label="Address"
+            value={cloneFormData.address}
+            onChange={(e) => setCloneFormData({ ...cloneFormData, address: e.target.value })}
+            placeholder="Address for the new branch"
+          />
+
+          <Input
+            label="Phone"
+            value={cloneFormData.phone}
+            onChange={(e) => setCloneFormData({ ...cloneFormData, phone: e.target.value })}
+          />
+
+          {/* Clone Options */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Data to Clone</h3>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={cloneFormData.config.itemBranches}
+                  onChange={(e) => setCloneFormData({
+                    ...cloneFormData,
+                    config: { ...cloneFormData.config, itemBranches: e.target.checked }
+                  })}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700">Item Availability Settings</span>
+              </label>
+            </div>
+          </div>
+
+          {/* BIR PTU Compliance Section */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">BIR PTU Settings (Optional)</h3>
+            <div className="space-y-4">
+              <Input
+                label="PTU Number"
+                value={cloneFormData.ptuNo}
+                onChange={(e) => setCloneFormData({ ...cloneFormData, ptuNo: e.target.value })}
+                placeholder="e.g., PTU-2024-000001"
+              />
+              <Input
+                label="Accreditation Number"
+                value={cloneFormData.accreditationNo}
+                onChange={(e) => setCloneFormData({ ...cloneFormData, accreditationNo: e.target.value })}
+                placeholder="BIR Accreditation Number"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={() => setIsCloneModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={isCloning}>
+              <Copy className="w-4 h-4 mr-2" />
+              Clone Branch
+            </Button>
           </div>
         </form>
       </Modal>

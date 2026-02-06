@@ -7,3 +7,5 @@ export { posApi } from './pos';
 export { shiftsApi } from './shifts';
 export { reportsApi } from './reports';
 export { alertsApi } from './alerts';
+export { lossPreventionApi } from './loss-prevention';
+export { notificationsApi } from './notifications';
