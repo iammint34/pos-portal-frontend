@@ -16,7 +16,6 @@ import {
   AlertType,
   AlertSeverity,
   AlertCountResponse,
-  PaginatedResponse,
 } from '../../types';
 import {
   Button,
