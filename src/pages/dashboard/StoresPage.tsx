@@ -70,7 +70,6 @@ export function StoresPage() {
       categories: true,
       roles: true,
       lossPreventionThresholds: true,
-      storeFeatures: false,
     },
   });
 
@@ -153,8 +152,7 @@ export function StoresPage() {
         categories: true,
         roles: true,
         lossPreventionThresholds: true,
-        storeFeatures: false,
-      },
+        },
     });
     setIsCloneModalOpen(true);
   };
@@ -465,18 +463,6 @@ export function StoresPage() {
                   className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-700">Loss Prevention Thresholds</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={cloneFormData.config.storeFeatures}
-                  onChange={(e) => setCloneFormData({
-                    ...cloneFormData,
-                    config: { ...cloneFormData.config, storeFeatures: e.target.checked }
-                  })}
-                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-sm text-gray-700">Feature Flags</span>
               </label>
             </div>
           </div>

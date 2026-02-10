@@ -724,7 +724,6 @@ export interface CloneStoreConfig {
   categories?: boolean;
   roles?: boolean;
   lossPreventionThresholds?: boolean;
-  storeFeatures?: boolean;
 }
 
 export interface CloneBranchConfig {
@@ -808,7 +807,7 @@ export type LossPreventionMetricType =
 export type LossPreventionTimeWindow = 'SHIFT' | 'DAY' | 'WEEK';
 export type LossPreventionScope = 'BRANCH' | 'STAFF' | 'POS_DEVICE';
 export type IncidentStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED' | 'ESCALATED';
-export type LPAlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type LPAlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
 
 export interface LossPreventionThreshold {
   id: string;
@@ -871,9 +870,8 @@ export interface LPDashboardSummary {
   resolvedIncidents: number;
   escalatedIncidents: number;
   incidentsBySeverity: {
-    LOW: number;
-    MEDIUM: number;
-    HIGH: number;
+    INFO: number;
+    WARNING: number;
     CRITICAL: number;
   };
   recentIncidents: LossPreventionIncident[];

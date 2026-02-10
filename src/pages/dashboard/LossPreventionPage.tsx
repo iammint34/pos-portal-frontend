@@ -72,9 +72,8 @@ const STATUS_OPTIONS = [
 
 const SEVERITY_OPTIONS = [
   { value: '', label: 'All Severities' },
-  { value: 'LOW', label: 'Low' },
-  { value: 'MEDIUM', label: 'Medium' },
-  { value: 'HIGH', label: 'High' },
+  { value: 'INFO', label: 'Info' },
+  { value: 'WARNING', label: 'Warning' },
   { value: 'CRITICAL', label: 'Critical' },
 ];
 
@@ -94,12 +93,10 @@ function getSeverityBadgeVariant(
   severity: LPAlertSeverity
 ): 'default' | 'success' | 'warning' | 'danger' | 'info' {
   switch (severity) {
-    case 'LOW':
+    case 'INFO':
       return 'info';
-    case 'MEDIUM':
+    case 'WARNING':
       return 'warning';
-    case 'HIGH':
-      return 'danger';
     case 'CRITICAL':
       return 'danger';
     default:
@@ -480,16 +477,12 @@ export function LossPreventionPage() {
                       <Badge variant="danger">{dashboard.incidentsBySeverity.CRITICAL}</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">High</span>
-                      <Badge variant="danger">{dashboard.incidentsBySeverity.HIGH}</Badge>
+                      <span className="text-sm text-gray-600">Warning</span>
+                      <Badge variant="warning">{dashboard.incidentsBySeverity.WARNING}</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Medium</span>
-                      <Badge variant="warning">{dashboard.incidentsBySeverity.MEDIUM}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Low</span>
-                      <Badge variant="info">{dashboard.incidentsBySeverity.LOW}</Badge>
+                      <span className="text-sm text-gray-600">Info</span>
+                      <Badge variant="info">{dashboard.incidentsBySeverity.INFO}</Badge>
                     </div>
                   </div>
                 </CardContent>
