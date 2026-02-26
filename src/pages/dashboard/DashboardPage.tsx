@@ -381,7 +381,7 @@ export function DashboardPage() {
                     tickFormatter={(value) => `₱${value.toLocaleString()}`}
                   />
                   <Tooltip
-                    formatter={(value: number) => [formatCurrency(value), 'Sales']}
+                    formatter={(value) => [formatCurrency(Number(value ?? 0)), 'Sales']}
                     contentStyle={{
                       backgroundColor: '#fff',
                       border: '1px solid #e5e7eb',
@@ -433,9 +433,9 @@ export function DashboardPage() {
                     width={120}
                   />
                   <Tooltip
-                    formatter={(value: number, _name: string, props: { payload: { fullName: string; quantity: number } }) => [
-                      `${formatCurrency(value)} (${props.payload.quantity} sold)`,
-                      props.payload.fullName,
+                    formatter={(value, _name, props) => [
+                      `${formatCurrency(Number(value ?? 0))} (${(props as any).payload.quantity} sold)`,
+                      (props as any).payload.fullName,
                     ]}
                     contentStyle={{
                       backgroundColor: '#fff',
@@ -479,7 +479,7 @@ export function DashboardPage() {
                       paddingAngle={3}
                       dataKey="value"
                     >
-                      {paymentChartData.map((entry, index) => (
+                      {paymentChartData.map((_entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={PAYMENT_COLORS[salesByPayment[index]?.paymentMethod] || CHART_COLORS[index % CHART_COLORS.length]}
@@ -487,7 +487,7 @@ export function DashboardPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number) => formatCurrency(value)}
+                      formatter={(value) => formatCurrency(Number(value ?? 0))}
                       contentStyle={{
                         backgroundColor: '#fff',
                         border: '1px solid #e5e7eb',
