@@ -6,6 +6,7 @@ export interface CreateItemDto {
   name: string;
   sku?: string;
   description?: string;
+  imageUrl?: string;
   price: number;
   categoryId?: string;
   isActive?: boolean;
@@ -15,6 +16,7 @@ export interface UpdateItemDto {
   name?: string;
   sku?: string;
   description?: string;
+  imageUrl?: string;
   price?: number;
   categoryId?: string;
   isActive?: boolean;
@@ -33,6 +35,17 @@ export interface UpdateCategoryDto {
   sortOrder?: number;
   isActive?: boolean;
 }
+
+export const uploadsApi = {
+  uploadImage: async (file: File): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post<{ url: string }>('/uploads/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+};
 
 export const itemsApi = {
   getAll: async (params: {

@@ -96,6 +96,7 @@ export interface Item {
   sku?: string;
   name: string;
   description?: string;
+  imageUrl?: string;
   price: number;
   isActive: boolean;
   version: number;
@@ -673,48 +674,6 @@ export interface StaffPerformance {
   cashVariance: number;
 }
 
-// Alert types
-export type AlertType =
-  | 'ZERO_SALES_BRANCH'
-  | 'EXCESSIVE_VOID_REFUND'
-  | 'INVENTORY_ANOMALY'
-  | 'POS_SYNC_FAILURE';
-
-export type AlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
-
-export interface Alert {
-  id: string;
-  storeId: string;
-  type: AlertType;
-  severity: AlertSeverity;
-  title: string;
-  message: string;
-  metadata?: Record<string, unknown>;
-  acknowledgedAt?: string;
-  acknowledgedBy?: string;
-  dismissedAt?: string;
-  dismissedBy?: string;
-  resolvedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AlertConfig {
-  alertType: AlertType;
-  enabled: boolean;
-  thresholds: Record<string, unknown>;
-  cooldownMinutes: number;
-}
-
-export interface AlertCountResponse {
-  count: number;
-  bySeverity: {
-    INFO: number;
-    WARNING: number;
-    CRITICAL: number;
-  };
-}
-
 // Clone types
 export type CloneType = 'BRANCH' | 'STORE';
 export type CloneStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'ROLLED_BACK';
@@ -892,72 +851,6 @@ export interface LPIncidentStats {
     CRITICAL: number;
   };
   byMetricType: Record<string, number>;
-}
-
-// Notification types
-export type NotificationType =
-  | 'DAILY_DIGEST'
-  | 'WEEKLY_SUMMARY'
-  | 'LOSS_PREVENTION_ALERT'
-  | 'DEVICE_OFFLINE'
-  | 'SYNC_FAILURE'
-  | 'SYSTEM_ALERT';
-
-export type NotificationChannel = 'EMAIL' | 'SMS' | 'PUSH';
-export type NotificationStatus = 'PENDING' | 'SENT' | 'FAILED';
-
-export interface NotificationPreference {
-  id: string;
-  storeId: string;
-  userId: string;
-  emailEnabled: boolean;
-  smsEnabled: boolean;
-  dailyDigest: boolean;
-  weeklySummary: boolean;
-  alertsEnabled: boolean;
-  email?: string;
-  phone?: string;
-  createdAt: string;
-  updatedAt: string;
-  user?: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
-}
-
-export interface NotificationLog {
-  id: string;
-  storeId: string;
-  userId?: string;
-  type: NotificationType;
-  channel: NotificationChannel;
-  recipient: string;
-  subject?: string;
-  content: string;
-  status: NotificationStatus;
-  errorMessage?: string;
-  sentAt?: string;
-  createdAt: string;
-  user?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-}
-
-export interface NotificationSchedule {
-  id: string;
-  storeId: string;
-  type: NotificationType;
-  schedule: string;
-  timezone: string;
-  enabled: boolean;
-  lastRunAt?: string;
-  nextRunAt?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 // Inventory types

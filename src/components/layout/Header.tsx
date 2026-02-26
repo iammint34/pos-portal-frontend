@@ -1,7 +1,6 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui';
 import { LogOut, User } from 'lucide-react';
-import { NotificationBell } from './NotificationBell';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -21,7 +20,6 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        <NotificationBell />
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
             <User className="w-4 h-4 text-primary-600" />

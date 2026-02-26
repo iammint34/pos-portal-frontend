@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { itemsApi, CreateItemDto, UpdateItemDto } from '../../api/items';
+import { useState, useEffect, useRef } from 'react';
+import { itemsApi, uploadsApi, CreateItemDto, UpdateItemDto } from '../../api/items';
 import { Item, Category } from '../../types';
 import { useStore } from '../../contexts/StoreContext';
 import {
@@ -19,7 +19,7 @@ import {
   Input,
   Select,
 } from '../../components/ui';
-import { Plus, Pencil, Trash2, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { formatPrice } from '../../lib/utils';
 
 export function ItemsPage() {
@@ -33,10 +33,13 @@ export function ItemsPage() {
     name: '',
     sku: '',
     description: '',
+    imageUrl: '',
     price: 0,
     categoryId: '',
     isActive: true,
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchData = async () => {
     if (!currentStore) return;
@@ -66,6 +69,7 @@ export function ItemsPage() {
         ...formData,
         storeId: currentStore.id,
         categoryId: formData.categoryId || undefined,
+        imageUrl: formData.imageUrl || undefined,
       };
       if (editingItem) {
         await itemsApi.update(editingItem.id, payload as UpdateItemDto);
@@ -74,7 +78,7 @@ export function ItemsPage() {
       }
       setIsModalOpen(false);
       setEditingItem(null);
-      setFormData({ name: '', sku: '', description: '', price: 0, categoryId: '', isActive: true });
+      setFormData({ name: '', sku: '', description: '', imageUrl: '', price: 0, categoryId: '', isActive: true });
       fetchData();
     } catch (error) {
       console.error('Failed to save item:', error);
@@ -87,6 +91,7 @@ export function ItemsPage() {
       name: item.name,
       sku: item.sku || '',
       description: item.description || '',
+      imageUrl: item.imageUrl || '',
       price: item.price,
       categoryId: item.categoryId || '',
       isActive: item.isActive,
@@ -130,6 +135,7 @@ export function ItemsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12"></TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>SKU</TableHead>
                 <TableHead>Category</TableHead>
@@ -142,19 +148,28 @@ export function ItemsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                     No items found
                   </TableCell>
                 </TableRow>
               ) : (
                 items.map((item) => (
                   <TableRow key={item.id}>
+                    <TableCell>
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-md object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center">
+                          <ImageIcon className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.sku || '-'}</TableCell>
                     <TableCell>{item.category?.name || '-'}</TableCell>
@@ -188,7 +203,7 @@ export function ItemsPage() {
         onClose={() => {
           setIsModalOpen(false);
           setEditingItem(null);
-          setFormData({ name: '', sku: '', description: '', price: 0, categoryId: '', isActive: true });
+          setFormData({ name: '', sku: '', description: '', imageUrl: '', price: 0, categoryId: '', isActive: true });
         }}
         title={editingItem ? 'Edit Item' : 'Add Item'}
         size="md"
@@ -225,6 +240,60 @@ export function ItemsPage() {
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Item Image</label>
+            {formData.imageUrl ? (
+              <div className="relative inline-block">
+                <img
+                  src={formData.imageUrl}
+                  alt="Item preview"
+                  className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors"
+              >
+                {isUploading ? (
+                  <p className="text-xs text-gray-500">Uploading...</p>
+                ) : (
+                  <>
+                    <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                    <p className="text-xs text-gray-500">Click to upload</p>
+                  </>
+                )}
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setIsUploading(true);
+                try {
+                  const { url } = await uploadsApi.uploadImage(file);
+                  setFormData({ ...formData, imageUrl: url });
+                } catch (err) {
+                  console.error('Failed to upload image:', err);
+                } finally {
+                  setIsUploading(false);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+              }}
+            />
+          </div>
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
